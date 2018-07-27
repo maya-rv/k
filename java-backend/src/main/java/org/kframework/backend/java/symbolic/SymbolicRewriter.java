@@ -867,7 +867,7 @@ public class SymbolicRewriter {
 
         if (global.globalOptions.log || forced || inNewStmt || global.globalOptions.logRulesPublic) {
             System.out.format("\nSTEP %d v%d : %.3f s \n===================\n",
-                    step, v, (System.currentTimeMillis() - Main.startTime) / 1000.);
+                    step, v, (System.currentTimeMillis() - global.profiler.getStartTime()) / 1000.);
         }
 
         if (global.globalOptions.log || forced || inNewStmt) {
