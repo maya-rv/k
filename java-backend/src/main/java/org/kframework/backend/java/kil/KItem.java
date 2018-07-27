@@ -282,7 +282,7 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
     private static final boolean RESOLVE_FUNC_CACHED = true;
 
     public Term evaluateFunction(TermContext context) {
-        Profiler2.resFuncNanoTimer.start();
+        global.profiler.resFuncNanoTimer.start();
         Term result;
         try {
             if (RESOLVE_FUNC_CACHED) {
@@ -292,19 +292,19 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                     result = global.kItemOps.evaluateFunction(this, context);
                     result.cachePut(constraint, result);
                     this.cachePut(constraint, result);
-                    Profiler2.countResFuncTopUncached++;
+                    global.profiler.countResFuncTopUncached++;
                 }
             } else {
                 result = global.kItemOps.evaluateFunction(this, context);
             }
         } finally {
-            Profiler2.resFuncNanoTimer.stop();
+            global.profiler.resFuncNanoTimer.stop();
         }
         return result;
     }
 
     public Term resolveFunctionAndAnywhere(TermContext context) {
-        Profiler2.resFuncNanoTimer.start();
+        global.profiler.resFuncNanoTimer.start();
         Term result;
         try {
             if (RESOLVE_FUNC_CACHED) {
@@ -314,17 +314,17 @@ public class KItem extends Term implements KItemRepresentation, HasGlobalContext
                     result = global.kItemOps.resolveFunctionAndAnywhere(this, context);
                     result.cachePut(constraint, result);
                     this.cachePut(constraint, result);
-                    if (Profiler2.resFuncNanoTimer.getLevel() == 1) {
-                        Profiler2.countResFuncTopUncached++;
+                    if (global.profiler.resFuncNanoTimer.getLevel() == 1) {
+                        global.profiler.countResFuncTopUncached++;
                     } else {
-                        Profiler2.countResFuncRecursiveUncached++;
+                        global.profiler.countResFuncRecursiveUncached++;
                     }
                 }
             } else {
                 result = global.kItemOps.resolveFunctionAndAnywhere(this, context);
             }
         } finally {
-            Profiler2.resFuncNanoTimer.stop();
+            global.profiler.resFuncNanoTimer.stop();
         }
         return result;
     }

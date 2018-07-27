@@ -4,7 +4,6 @@ package org.kframework.backend.java.symbolic;
 import com.google.inject.Provider;
 import org.kframework.backend.java.kil.Definition;
 import org.kframework.backend.java.kil.Variable;
-import org.kframework.backend.java.util.Profiler2;
 import org.kframework.backend.java.util.Z3Wrapper;
 import org.kframework.main.GlobalOptions;
 import org.kframework.utils.errorsystem.KExceptionManager;
@@ -43,18 +42,18 @@ public class SMTOperations {
 
         boolean result = false;
         try {
-            Profiler2.queryBuildTimer.start();
+            constraint.globalContext().profiler.queryBuildTimer.start();
             CharSequence query;
             try {
                 query = KILtoSMTLib.translateConstraint(constraint).toString();
             } finally {
-                Profiler2.queryBuildTimer.stop();
+                constraint.globalContext().profiler.queryBuildTimer.stop();
             }
             if (global.debugFull) {
                 System.err.format("\nAttempting to check unsat for:\n================= \n\t%s\n" +
                         "query: \n\t%s\n", constraint, query);
             }
-            result = z3.isUnsat(query, smtOptions.z3CnstrTimeout, Profiler2.z3Constraint);
+            result = z3.isUnsat(query, smtOptions.z3CnstrTimeout, constraint.globalContext().profiler.z3Constraint);
             if (result && RuleAuditing.isAuditBegun()) {
                 System.err.format("SMT query returned unsat: %s\n", query);
             }
@@ -74,17 +73,17 @@ public class SMTOperations {
         if (smtOptions.smt == SMTSolver.Z3) {
             try {
                 //From this point on, will be converted to toString() anyway.
-                Profiler2.queryBuildTimer.start();
+                left.globalContext().profiler.queryBuildTimer.start();
                 CharSequence query;
                 try {
                     query = KILtoSMTLib.translateImplication(left, right, rightOnlyVariables).toString();
                 } finally {
-                    Profiler2.queryBuildTimer.stop();
+                    left.globalContext().profiler.queryBuildTimer.stop();
                 }
                 if (global.debug) {
                     System.err.format("\nz3 query: %s\n", query);
                 }
-                return z3.isUnsat(query, smtOptions.z3ImplTimeout, Profiler2.z3Implication);
+                return z3.isUnsat(query, smtOptions.z3ImplTimeout, left.globalContext().profiler.z3Implication);
             } catch (UnsupportedOperationException | SMTTranslationFailure e) {
                 if (!smtOptions.ignoreMissingSMTLibWarning) {
                     kem.registerCriticalWarning(e.getMessage(), e);

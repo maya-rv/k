@@ -69,6 +69,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
     private final InitializeDefinition initializeDefinition;
     private static final int NEGATIVE_VALUE = -1;
     private final KompileOptions kompileOptions;
+    private final Profiler2 profiler;
 
     @Inject
     public InitializeRewriter(
@@ -80,7 +81,8 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             KompileOptions kompileOptions,
             FileUtil files,
             InitializeDefinition initializeDefinition,
-            Stopwatch sw) {
+            Stopwatch sw,
+            Profiler2 profiler) {
         this.fs = fs;
         this.sw = sw;
         this.deterministicFunctions = false;
@@ -93,15 +95,16 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         this.krunOptions = krunOptions;
         this.files = files;
         this.initializeDefinition = initializeDefinition;
+        this.profiler = profiler;
     }
 
     @Override
     public synchronized Rewriter apply(Module mainModule) {
-        TermContext initializingContext = TermContext.builder(new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING))
+        TermContext initializingContext = TermContext.builder(new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.INITIALIZING, profiler))
                 .freshCounter(0).build();
         Definition definition;
         definition = initializeDefinition.invoke(mainModule, kem, initializingContext.global());
-        GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING);
+        GlobalContext rewritingContext = new GlobalContext(fs, deterministicFunctions, globalOptions, krunOptions, kem, smtOptions, hookProvider, files, Stage.REWRITING, profiler);
         rewritingContext.setDefinition(definition);
 
         return new SymbolicRewriterGlue(mainModule, definition, definition, transitions, initializingContext.getCounterValue(), rewritingContext, kem, files, kompileOptions, sw);
@@ -193,7 +196,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
         public K prove(Module mod) {
             //todo kompileOptions.global == null, but shouldn't
             if (rewritingContext.globalOptions.verbose) {
-                Profiler2.logParsingTime();
+                rewritingContext.profiler.logParsingTime();
             }
             List<Rule> rules = stream(mod.rules()).filter(r -> r.att().contains("specification")).collect(Collectors.toList());
             ProcessProofRules processProofRules = new ProcessProofRules(rules).invoke(rewritingContext, initCounterValue, module, definition);
@@ -212,7 +215,7 @@ public class InitializeRewriter implements Function<Module, Rewriter> {
             SymbolicRewriter rewriter = new SymbolicRewriter(rewritingContext, transitions, converter);
 
             if (rewritingContext.globalOptions.verbose) {
-                Profiler2.logInitTime();
+                rewritingContext.profiler.logInitTime();
             }
             List<ConstrainedTerm> proofResults = javaRules.stream()
                     .filter(r -> !r.att().contains(Attribute.TRUSTED_KEY))
