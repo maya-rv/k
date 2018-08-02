@@ -812,6 +812,9 @@ public class SymbolicRewriter {
             System.out.println(term.constraint().toString().replaceAll("#And", "\n#And"));
             System.out.println();
         }
+        if (proofResults.isEmpty()) {
+            System.out.println(KLabels.ML_TRUE);
+        }
 
         if (global.globalOptions.verbose) {
             printSummaryBox(rule, proofResults, successPaths, step);
