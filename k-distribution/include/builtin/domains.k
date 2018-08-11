@@ -568,7 +568,7 @@ module STRING-BUFFER-SYNTAX
   imports STRING
 
   syntax StringBuffer [hook(BUFFER.StringBuffer)]
-  syntax StringBuffer ::= ".StringBuffer" [function, hook(BUFFER.empty), impure]
+  syntax StringBuffer ::= ".StringBuffer" [function, hook(BUFFER.empty)]
   syntax StringBuffer ::= StringBuffer "+String" String [function, left, hook(BUFFER.concat), avoid]
   syntax String ::= StringBuffer2String ( StringBuffer ) [function, hook(BUFFER.toString)]
 endmodule
