@@ -54,7 +54,9 @@ public class Profiler2 {
         System.err.format("  Execution time:      %.3f\n\n", (currentTimestamp - initTimestamp) / 1000.);
 
         System.err.format("Init+Execution time:    %.3f\n", (currentTimestamp - parsingTimestamp) / 1000.);
-        System.err.format("  query build time:     %s\n", queryBuildTimer);
+        if (queryBuildTimer.getCount() > 0) {
+            System.err.format("  query build time:     %s\n", queryBuildTimer);
+        }
         for (Z3Profiler profiler : z3Profilers.values()) {
             if (profiler.getQueryCount() > 0) {
                 profiler.print();
@@ -62,15 +64,21 @@ public class Profiler2 {
         }
 
         System.err.format("  resolveFunction time: %s\n", resFuncNanoTimer);
-        System.err.format("  log time:             %s\n\n", logOverheadTimer);
+        if (logOverheadTimer.getCount() > 0) {
+            System.err.format("  log time:             %s\n\n", logOverheadTimer);
+        }
 
         System.err.format("resolveFunction top-level uncached: %d\n", countResFuncTopUncached);
-        System.err.format("resolveFunction top-level cached:   %d\n",
-                resFuncNanoTimer.getCount() - countResFuncTopUncached);
+        int countCached = resFuncNanoTimer.getCount() - countResFuncTopUncached;
+        if (countCached > 0) {
+            System.err.format("resolveFunction top-level cached:   %d\n", countCached);
+        }
         System.err.format("resolveFunction recursive uncached: %d\n", countResFuncRecursiveUncached);
 
-        System.err.format("\nimpliesSMT time:    %s\n", ConjunctiveFormula.impliesStopwatch);
-        System.err.format("impliesSMT count: %s\n", ConjunctiveFormula.impliesStopwatch.getCount());
+        if (ConjunctiveFormula.impliesStopwatch.getCount() > 0) {
+            System.err.format("\nimpliesSMT time:    %s\n", ConjunctiveFormula.impliesStopwatch);
+            System.err.format("impliesSMT count: %s\n", ConjunctiveFormula.impliesStopwatch.getCount());
+        }
 
         //Has some overhead. Enable from class Profiler if needed, by setting value below to true.
         if (Profiler.enableProfilingMode.get()) {
